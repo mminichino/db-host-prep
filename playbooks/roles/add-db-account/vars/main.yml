@@ -1,0 +1,3 @@
+---
+# vars file for add-db-account
+local_home: "{{ lookup('env','HOME') }}"

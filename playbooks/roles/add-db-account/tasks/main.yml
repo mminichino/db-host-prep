@@ -1,0 +1,43 @@
+---
+# tasks file for add-db-account
+- name: Add Galaxy collection
+  command: "ansible-galaxy collection install ansible.posix"
+  become: yes
+  delegate_to: localhost
+  when: run_setup|bool == true
+- name: Ensure group dba exists
+  ansible.builtin.group:
+    name: dba
+    state: present
+    gid: 502
+- name: Create DB user
+  ansible.builtin.user:
+    name: dbuser
+    uid: 501
+    group: dba
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+- name: Change oracle home directory ownership
+  ansible.builtin.file:
+    path: /home/dbuser
+    owner: dbuser
+    group: dba
+    recurse: yes
+- name: Set authorized key
+  authorized_key:
+    user: dbuser
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+- name: Copy bashrc
+  ansible.builtin.copy:
+    src: templates/bashrc
+    dest: /home/dbuser/.bashrc
+    owner: dbuser
+    group: dba
+    mode: '0644'
+- name: Add dbuser to docker group
+  ansible.builtin.user:
+    name: dbuser
+    groups: docker
+    append: yes

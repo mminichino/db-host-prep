@@ -1,0 +1,32 @@
+---
+# tasks file for AWS
+#
+- name: Install pip prerequisites
+  pip:
+    state: present
+    name:
+     - boto3
+     - boto
+     - botocore
+     - requests
+    extra_args: --ignore-installed
+  become: yes
+  delegate_to: localhost
+  when: run_setup|bool == true
+- name: Add Galaxy collection
+  command: "ansible-galaxy collection install community.aws"
+  become: yes
+  delegate_to: localhost
+  when: run_setup|bool == true
+- name: Get AWS Instance Configuration
+  vars:
+    ansible_become: false
+  ec2_instance_info:
+    filters:
+      "tag:Name": "{{ inventory_hostname }}"
+    region: "{{ cloud_region }}"
+  register: ec2_instance_info
+  delegate_to: localhost
+  retries: 3
+- set_fact:
+    host_address: "{{ ec2_instance_info.instances[0].network_interfaces[0].private_ip_address }}"

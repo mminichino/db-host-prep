@@ -1,0 +1,47 @@
+---
+# tasks file for AWS
+#
+- name: Create temporary directory
+  vars:
+    ansible_become: false
+  ansible.builtin.tempfile:
+    state: directory
+  delegate_to: localhost
+  run_once: true
+  register: temp_dir
+- name: Get file list from S3
+  vars:
+    ansible_become: false
+  aws_s3:
+    bucket: "{{ bucket_name }}"
+    mode: list
+  register: file_list
+  delegate_to: localhost
+  run_once: true
+  retries: 3
+- name: Copy files from S3
+  vars:
+    ansible_become: false
+  aws_s3:
+    bucket: "{{ bucket_name }}"
+    object: "{{ item }}"
+    dest: "{{ temp_dir.path }}/{{ item }}"
+    mode: get
+  delegate_to: localhost
+  run_once: true
+  retries: 3
+  with_items: "{{ file_list.s3_keys }}"
+- name: Copy software to host
+  ansible.builtin.copy:
+    src: "{{ temp_dir.path }}/"
+    dest: "/opt/software"
+    owner: dbuser
+    group: dba
+    mode: '0644'
+- name: Remove temp directory
+  ansible.builtin.file:
+    path: "{{ temp_dir.path }}"
+    state: absent
+  when: temp_dir.path is defined
+  delegate_to: localhost
+  run_once: true

@@ -1,0 +1,25 @@
+---
+# tasks file for make-swap
+- name: Add Galaxy collection
+  command: "ansible-galaxy collection install community.general"
+  become: yes
+  delegate_to: localhost
+  when: run_setup|bool == true
+- name: Create swap partition
+  parted:
+    device: "{{ swap_dev }}"
+    number: 1
+    state: present
+    fs_type: linux-swap
+- name: Make swap partition
+  command: "mkswap {{ swap_dev }}1"
+- shell: "blkid -s UUID -o value {{ swap_dev }}1"
+  register: disk_uuid
+- name: Add entry to fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    state: present
+    regexp: "{{ disk_uuid.stdout }}"
+    line: "UUID={{ disk_uuid.stdout }} swap swap defaults 0 0"
+- name: Swapon
+  command: "swapon -a"

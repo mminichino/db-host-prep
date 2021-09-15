@@ -1,0 +1,16 @@
+---
+# tasks file for copy-software
+- name: Create software directory
+  ansible.builtin.file:
+    path: "/opt/software"
+    state: directory
+    mode: '0755'
+    owner: dbuser
+    group: dba
+    recurse: yes
+- name: Copy software files in AWS
+  include: aws.yml
+  when: file_type == 'aws'
+- name: Copy local software files
+  include: local.yml
+  when: file_type == 'local'

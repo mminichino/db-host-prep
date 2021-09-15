@@ -1,0 +1,16 @@
+---
+# tasks file for install-db-package
+- name: Download oracle-database-preinstall-19c
+  get_url:
+    url: https://yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/getPackage/oracle-database-preinstall-19c-1.0-3.el7.x86_64.rpm
+    dest: /home/oracle/oracle-database-preinstall-19c-1.0-3.el7.x86_64.rpm
+- name: Change file ownership
+  ansible.builtin.file:
+    path: /home/oracle/oracle-database-preinstall-19c-1.0-3.el7.x86_64.rpm
+    owner: oracle
+    group: dba
+    mode: '0644'
+- name: Install preinstall package
+  yum:
+    name: /home/oracle/oracle-database-preinstall-19c-1.0-3.el7.x86_64.rpm
+    state: present

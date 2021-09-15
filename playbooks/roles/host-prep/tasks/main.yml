@@ -1,0 +1,57 @@
+---
+# tasks file for host-prep
+- name: Install pip prerequisites
+  pip:
+    state: present
+    name:
+     - dnspython
+     - netaddr
+  become: yes
+  delegate_to: localhost
+  when: run_setup|bool == true
+- name: Add Galaxy collection
+  command: "ansible-galaxy collection install community.general"
+  become: yes
+  delegate_to: localhost
+  when: run_setup|bool == true
+- name: Add Galaxy collection
+  command: "ansible-galaxy collection install ansible.netcommon"
+  become: yes
+  delegate_to: localhost
+  when: run_setup|bool == true
+- name: Get AWS instance configuration
+  include: aws.yml
+  when: cloud_type == 'aws'
+- name: Set the instance hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+    use: "{{ os_strategy }}"
+  delegate_to: "{{ host_address }}"
+- name: Add DNS A Record
+  nsupdate:
+    key_name: "{{ dns_key }}"
+    key_secret: "{{ dns_secret }}"
+    key_algorithm: hmac-sha256
+    server: "{{ dns_host }}"
+    zone: "{{ dns_zone }}"
+    record: "{{ inventory_hostname }}"
+    value: "{{ host_address }}"
+  delegate_to: localhost
+- name: Add DNS PTR Record
+  nsupdate:
+    key_name: "{{ dns_key }}"
+    key_secret: "{{ dns_secret }}"
+    key_algorithm: hmac-sha256
+    server: "{{ dns_host }}"
+    record: "{{ host_address | ipaddr('revdns') }}"
+    type: "PTR"
+    value: "{{ inventory_hostname + '.' + dns_zone + '.' }}"
+    state: present
+  delegate_to: localhost
+- name: Copy resolv.conf
+  ansible.builtin.copy:
+    src: /etc/resolv.conf
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: '0644'

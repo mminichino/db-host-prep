@@ -1,0 +1,3 @@
+---
+# vars file for copy-software
+install_file_location: "{{ sw_dir if sw_dir is defined else lookup('env','HOME') }}"

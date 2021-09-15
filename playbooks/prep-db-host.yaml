@@ -1,0 +1,25 @@
+---
+#
+# var:cloud
+# var:bucket
+# var:key
+# var:secret
+# var:software
+# var:swap
+# var:root
+# var:start
+# var:region
+# var:dnskey
+# var:dnssecret
+# var:dnsserver
+# var:domain
+#
+- name: Prep database host
+  hosts: all
+  gather_facts: no
+  roles:
+    - host-prep
+    - add-db-account
+    - install-sw-packages
+    - { role: copy-software, when: bucket is defined }
+    - { role: make-swap, when: swap is defined and swap != '' }
