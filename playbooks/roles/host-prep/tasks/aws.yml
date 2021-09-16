@@ -24,6 +24,7 @@
   ec2_instance_info:
     filters:
       "tag:Name": "{{ inventory_hostname }}"
+      instance-state-name: ["running"]
     region: "{{ cloud_region }}"
   register: ec2_instance_info
   delegate_to: localhost
