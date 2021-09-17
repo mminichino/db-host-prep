@@ -13,6 +13,8 @@
 # var:dnssecret
 # var:dnsserver
 # var:domain
+# var:user_name
+# var:admid
 #
 - name: Prep database host
   hosts: all

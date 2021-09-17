@@ -41,3 +41,22 @@
     name: dbuser
     groups: docker
     append: yes
+  ignore_errors: yes
+- name: Ensure group admin exists
+  ansible.builtin.group:
+    name: admin
+    state: present
+    gid: "{{ admin_id }}"
+- name: Ensure admin account exists
+  ansible.builtin.user:
+    name: admin
+    uid: "{{ admin_id }}"
+    group: admin
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+- name: Set admin authorized key
+  authorized_key:
+    user: admin
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
