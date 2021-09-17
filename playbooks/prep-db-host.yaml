@@ -15,13 +15,14 @@
 # var:domain
 # var:user_name
 # var:admid
+# var:dnsonly
 #
 - name: Prep database host
   hosts: all
   gather_facts: no
   roles:
     - host-prep
-    - add-db-account
-    - install-sw-packages
+    - { role: add-db-account, when: prep_only|bool == false }
+    - { role: install-sw-packages, when: prep_only|bool == false }
     - { role: copy-software, when: bucket is defined }
     - { role: make-swap, when: swap is defined and swap != '' }
