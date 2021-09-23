@@ -1,0 +1,8 @@
+---
+# tasks file for get-info
+- name: Get AWS instance configuration
+  include: aws.yml
+  when: cloud_type == 'aws'
+- debug:
+    var: ec2_instance_info
+  when: cloud_type == 'aws'

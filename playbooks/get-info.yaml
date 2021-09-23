@@ -1,0 +1,24 @@
+---
+#
+# var:cloud
+# var:bucket
+# var:key
+# var:secret
+# var:software
+# var:swap
+# var:root
+# var:start
+# var:region
+# var:dnskey
+# var:dnssecret
+# var:dnsserver
+# var:domain
+# var:user_name
+# var:admid
+# var:dnsonly
+#
+- name: Get AWS Instance Info
+  hosts: all
+  gather_facts: no
+  roles:
+    - get-info
