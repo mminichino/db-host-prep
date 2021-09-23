@@ -35,6 +35,8 @@ class dynamicInventory(object):
         inventoryJson['lab'] = {"hosts": [], "vars": {}}
         inventoryJson['_meta'] = {"hostvars": {}}
         hostname = socket.gethostname()
+        homeDir = os.environ['HOME']
+        dnsKeyFile = homeDir + "/.dns/dns.key"
 
         filters = [
             {
@@ -50,6 +52,23 @@ class dynamicInventory(object):
         domain_name = host_fqdn.split('.',1)[1].rstrip('.')
 
         inventoryJson['lab']['vars']['domain'] = domain_name
+
+        if os.path.exists(dnsKeyFile):
+            try:
+                with open(dnsKeyFile, 'r') as keyFile:
+                    try:
+                        keyData = json.load(keyFile)
+                    except ValueError as e:
+                        print("DNS key file ~/.dns/dns.key does not contain valid JSON data: %s" % str(e))
+                        sys.exit(1)
+                    if keyData['dnskey']:
+                        inventoryJson['lab']['vars']['dnssecret'] = keyData['dnskey']
+            except OSError as e:
+                print("Could not read dns key file: %s" % str(e))
+                sys.exit(1)
+
+        if os.environ['AWS_DEFAULT_REGION']:
+            inventoryJson['lab']['vars']['region'] = os.environ['AWS_DEFAULT_REGION']
 
         ec2 = boto3.resource('ec2')
         instances = ec2.instances.filter(Filters=filters)
